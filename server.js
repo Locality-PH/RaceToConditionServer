@@ -55,30 +55,53 @@ app.patch('/market/:userId/buy/', (req, res) => {
     const userId = req.params.userId;
     const itemId = req.body.itemId;
     const itemPrice = req.body.itemPrice;
-    const userMoney = req.body.userMoney;
-    var totalMoney = userMoney - itemPrice;
+    let userMoney;
+    let totalMoney;
 
-    if (totalMoney < 0) {
-        res.status(201).send(false);
-    } else {
-        db.query("UPDATE `users` SET `money`= ? WHERE id = ?", [totalMoney, userId],
+    const setMoney = (money) => {
+    userMoney = money;
+    }
+
+    db.query('Select * FROM users WHERE id = ' + userId,
         (err, result) => {
             if (err) {
                 console.log(err)
             } else {
-                console.log("Your money balance: " + totalMoney);
+                setMoney(result[0].money);
+                getTotalMoney(userMoney);
+                buyItem(userMoney);
             }
         });
     
-        db.query("INSERT INTO cart(user_id, item_id) VALUES (?,?)", [userId,itemId],
-        (err, result) => {
-            if (err) {
-                console.log(err)
+    
+        const getTotalMoney = (money) => {
+           totalMoney = money - itemPrice;
+        }
+
+        const buyItem = (currentMoney) => {
+            if (totalMoney < 0) {
+                res.status(201).send(false);
             } else {
-                res.status(201).send("Post Sucess");
+                console.log("before update " + userMoney);
+                db.query("UPDATE `users` SET `money`= ? WHERE id = ?", [totalMoney, userId],
+                (err, result) => {
+                    if (err) {
+                        console.log(err)
+                    } else {
+                        console.log("Your money balance: " + totalMoney);
+                    }
+                });
+            
+                db.query("INSERT INTO cart(user_id, item_id) VALUES (?,?)", [userId,itemId],
+                (err, result) => {
+                    if (err) {
+                        console.log(err)
+                    } else {
+                        res.status(201).send("Post Sucess");
+                    }
+                });
             }
-        });
-    }
+        }
    
 });
 
