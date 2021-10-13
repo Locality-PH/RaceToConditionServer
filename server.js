@@ -56,6 +56,12 @@ app.patch('/market/:userId/buy/', (req, res) => {
     const itemId = req.body.itemId;
     let itemPrice, userMoney, totalMoney;
 
+    const checkVariable = () => {
+        if (userId == undefined || itemId == undefined) {
+            return (false);
+        } else return (true);
+    }
+
     const setMoney = (money) => {
         userMoney = money;
     }
@@ -93,7 +99,11 @@ app.patch('/market/:userId/buy/', (req, res) => {
         }
     }
 
-    db.query('Select * FROM items WHERE id = ' + itemId,
+    if (checkVariable() == false) {
+        console.log("Variables undefined");
+        res.status(201).send("Variables undefined");
+    } else {
+        db.query('Select * FROM items WHERE id = ' + itemId,
         (err, result) => {
             if (err) {
                 console.log(err)
@@ -113,14 +123,22 @@ app.patch('/market/:userId/buy/', (req, res) => {
             }
         });
 
+    }
 
 });
 
 app.patch('/market/:userId/sell/', (req, res) => {
     const userId = req.params.userId;
-    const cartId =req.body.cartId;
+    const cartId = req.body.cartId;
     const itemId = req.body.itemId;
     let itemPrice, userMoney, totalMoney;
+
+
+    const checkVariable = () => {
+        if (userId == undefined || cartId == undefined || itemId == undefined) {
+            return (false);
+        } else return (true);
+    }
 
     const setMoney = (money) => {
         userMoney = money;
@@ -155,28 +173,35 @@ app.patch('/market/:userId/sell/', (req, res) => {
             });
     }
 
-    db.query('Select * FROM items WHERE id = ' + itemId,
-    (err, result) => {
-        if (err) {
-            console.log(err)
-        } else {
-            setItemPrice(result[0].price);
-        }
-    });
+    if (checkVariable() == false) {
+        console.log("Variables undefined");
+        res.status(201).send("Variables undefined");
 
-    db.query('Select * FROM users WHERE id = ' + userId,
-        (err, result) => {
-            if (err) {
-                console.log(err)
-            } else {
-                setMoney(result[0].money);
-                setTotalMoney(userMoney);
-                sellItem();
-            }
-        });
+    } else {
+        db.query('Select * FROM items WHERE id = ' + itemId,
+            (err, result) => {
+                if (err) {
+                    console.log(err)
+                } else {
+                    setItemPrice(result[0].price);
+                }
+            });
+
+        db.query('Select * FROM users WHERE id = ' + userId,
+            (err, result) => {
+                if (err) {
+                    console.log(err)
+                } else {
+                    setMoney(result[0].money);
+                    setTotalMoney(userMoney);
+                    sellItem();
+                }
+            });
+    }
+
 
 });
 
 app.listen(3001, () => {
-    console.log("Your server is running UwU");
+    console.log("Your server is running.");
 })
